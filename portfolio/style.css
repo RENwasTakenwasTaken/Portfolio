@@ -1,0 +1,1140 @@
+﻿:root {
+  --bg-light-1: #f0f4f8;
+  --bg-light-2: #e4eaf2;
+  --bg-light-3: #d4dde8;
+  --bg-dark-1: #0b0f2a;
+  --bg-dark-2: #140a2e;
+  --text-light: #1a2438;
+  --text-dark: #e9f0ff;
+  --muted-light: rgba(26, 36, 56, 0.58);
+  --muted-dark: rgba(233, 240, 255, 0.72);
+  --surface-light: rgba(255, 255, 255, 0.62);
+  --surface-dark: rgba(18, 24, 54, 0.66);
+  --surface-border-light: rgba(180, 195, 220, 0.4);
+  --surface-border-dark: rgba(132, 173, 255, 0.16);
+  --carrier: #3b82d6;
+  --modulation: #2a5fad;
+  --glow-carrier: rgba(59, 130, 214, 0.28);
+  --glow-mod: rgba(42, 95, 173, 0.2);
+  --signal-alpha: 0.55;
+  --grid-opacity: 0;
+}
+
+body.dark {
+  --carrier: #3a86ff;
+  --modulation: #7b2cbf;
+  --glow-carrier: rgba(58, 134, 255, 0.46);
+  --glow-mod: rgba(123, 44, 191, 0.34);
+  --signal-alpha: 0.74;
+}
+
+body.oscilloscope {
+  --grid-opacity: 0.23;
+  --signal-alpha: 0.95;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  color: var(--text-light);
+  background: linear-gradient(160deg, var(--bg-light-1), var(--bg-light-2) 45%, var(--bg-light-3));
+  transition: background 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+
+body.dark {
+  color: var(--text-dark);
+  background: radial-gradient(circle at 15% 8%, #1a2a58 0%, var(--bg-dark-1) 48%, var(--bg-dark-2) 100%);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(120, 180, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 180, 255, 0.14) 1px, transparent 1px);
+  background-size: 56px 56px;
+  opacity: var(--grid-opacity);
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+#signalCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 22;
+  pointer-events: none;
+  opacity: var(--signal-alpha);
+  mix-blend-mode: screen;
+}
+
+.progress-wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  z-index: 240;
+}
+
+.progress-bar {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--carrier), var(--modulation));
+}
+
+.nav-shell {
+  position: sticky;
+  top: 0;
+  z-index: 180;
+  padding: 0.92rem 1rem;
+}
+
+.nav {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--surface-border-light);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(10px);
+  transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+
+body.dark .nav {
+  border-color: var(--surface-border-dark);
+  background: rgba(9, 13, 35, 0.78);
+}
+
+.nav--scrolled {
+  box-shadow: 0 8px 28px rgba(26, 36, 56, 0.1);
+}
+
+body.dark .nav--scrolled {
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.32);
+}
+
+.nav__logo {
+  font-family: "Chakra Petch", "Segoe UI", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  font-size: 1.08rem;
+}
+
+.nav__links {
+  display: flex;
+  gap: 1.15rem;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.93rem;
+  letter-spacing: 0.07em;
+  position: relative;
+  padding-bottom: 0.4rem;
+}
+
+.nav-link:hover {
+  color: var(--carrier);
+}
+
+.nav-wave {
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  bottom: -8px;
+  height: 18px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.nav-wave svg {
+  width: 100%;
+  height: 100%;
+}
+
+.nav-wave path {
+  fill: none;
+  stroke: var(--carrier);
+  stroke-width: 1.7;
+  filter: drop-shadow(0 0 4px var(--glow-carrier));
+}
+
+.nav-link.signal-hover .nav-wave,
+.nav-link.signal-release .nav-wave {
+  opacity: 1;
+}
+
+.nav__actions {
+  display: flex;
+  gap: 0.48rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.theme-toggle,
+.scope-toggle {
+  border: 1px solid var(--surface-border-light);
+  background: rgba(255, 255, 255, 0.5);
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.46rem 0.88rem;
+  font-family: "Chakra Petch", "Segoe UI", sans-serif;
+  letter-spacing: 0.06em;
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+body.dark .theme-toggle,
+body.dark .scope-toggle {
+  border-color: var(--surface-border-dark);
+}
+
+.theme-toggle:hover,
+.scope-toggle:hover {
+  transform: translateY(-1px);
+  color: var(--carrier);
+}
+
+.scope-toggle.active {
+  border-color: var(--carrier);
+  color: var(--carrier);
+}
+
+main {
+  position: relative;
+  z-index: 12;
+}
+
+.hero {
+  position: relative;
+  min-height: 92vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding: 4.2rem 1rem 3rem;
+}
+
+#heroCarrierCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.82;
+}
+
+#aboutThreeCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.about__wave-label {
+  position: absolute;
+  bottom: 0.9rem;
+  right: 1.5rem;
+  z-index: 2;
+  font-family: "Share Tech Mono", "Courier New", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--carrier);
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+.hero__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(146, 191, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(146, 191, 255, 0.1) 1px, transparent 1px);
+  background-size: 90px 90px;
+  opacity: 0.18;
+  z-index: 1;
+}
+
+.hero__layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.58;
+  z-index: 1;
+}
+
+.layer-one {
+  background: radial-gradient(circle at 18% 18%, rgba(59, 130, 214, 0.18), transparent 44%);
+}
+
+.layer-two {
+  background: radial-gradient(circle at 82% 24%, rgba(42, 95, 173, 0.14), transparent 42%);
+}
+
+body.dark .layer-one {
+  background: radial-gradient(circle at 18% 18%, rgba(58, 134, 255, 0.66), transparent 44%);
+}
+
+body.dark .layer-two {
+  background: radial-gradient(circle at 82% 24%, rgba(123, 44, 191, 0.56), transparent 42%);
+}
+
+.layer-three {
+  background: radial-gradient(circle at 50% 83%, rgba(5, 9, 28, 0.12), transparent 54%);
+}
+
+body.dark .layer-three {
+  background: radial-gradient(circle at 50% 83%, rgba(5, 9, 28, 0.82), transparent 54%);
+}
+
+.hero__content {
+  position: relative;
+  z-index: 3;
+  max-width: 780px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+
+.hero__intro {
+  margin: 0;
+  font-family: "Share Tech Mono", "Courier New", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.78rem;
+  color: var(--carrier);
+  opacity: 0;
+  animation: rise-in 0.85s ease forwards;
+}
+
+.hero__intro::after {
+  content: "_";
+  animation: blink-cursor 1s step-end infinite;
+  opacity: 0.7;
+}
+
+@keyframes blink-cursor {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 0; }
+}
+
+.hero__name {
+  margin: 0.44rem 0 0.38rem;
+  font-family: "Chakra Petch", "Segoe UI", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-size: clamp(3rem, 9vw, 6rem);
+}
+
+.hero__title {
+  margin: 0;
+  font-family: "Chakra Petch", "Segoe UI", sans-serif;
+  font-size: clamp(1.04rem, 1.9vw, 1.46rem);
+  line-height: 1.5;
+}
+
+.hero__tagline {
+  margin-top: 1rem;
+  max-width: 580px;
+  font-size: 1.02rem;
+  line-height: 1.72;
+  opacity: 0;
+  animation: rise-in 0.9s ease 0.18s forwards;
+}
+
+.hero__cta {
+  margin-top: 1.65rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.8rem 1.2rem;
+  text-transform: uppercase;
+  font-family: "Chakra Petch", "Segoe UI", sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+
+.primary-btn {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--carrier), var(--modulation));
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px var(--glow-carrier);
+}
+
+.ghost-btn:hover {
+  transform: translateY(-2px);
+  color: var(--carrier);
+}
+
+.section {
+  position: relative;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 5rem 1.5rem 2.5rem;
+}
+
+.about {
+  max-width: none;
+  width: 100%;
+  min-height: 82vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.about > *:not(#aboutThreeCanvas):not(.about__wave-label) {
+  position: relative;
+  z-index: 1;
+}
+
+.section__heading {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.34em;
+  font-family: "Chakra Petch", "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  color: var(--muted-light);
+}
+
+body.dark .eyebrow {
+  color: var(--muted-dark);
+}
+
+.section__heading h2 {
+  margin: 0.62rem 0 0;
+  font-family: "Chakra Petch", "Segoe UI", sans-serif;
+  font-size: clamp(1.7rem, 4vw, 2.7rem);
+}
+
+.section__heading h2::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 2px;
+  margin: 0.7rem auto 0;
+  background: linear-gradient(90deg, var(--carrier), var(--modulation));
+  border-radius: 1px;
+  opacity: 0.6;
+}
+
+.about__content,
+.skill-card,
+.project-card,
+.contact__item {
+  background: var(--surface-light);
+  border: 1px solid var(--surface-border-light);
+  border-radius: 18px;
+  box-shadow: 0 8px 30px rgba(26, 36, 56, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.about__content {
+  backdrop-filter: blur(8px);
+}
+
+.skill-card::before,
+.project-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--carrier), var(--modulation), transparent);
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.skill-card:hover::before,
+.project-card:hover::before {
+  opacity: 1;
+}
+
+.skill-card h3,
+.project-card h3,
+.contact__item h3 {
+  font-family: "Chakra Petch", "Segoe UI", sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.65rem;
+}
+
+.skill-card p,
+.project-card p,
+.contact__item p {
+  margin: 0;
+  font-size: 0.94rem;
+  line-height: 1.75;
+  opacity: 0.78;
+}
+
+.skill-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skill-list li {
+  position: relative;
+  padding-left: 1rem;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  opacity: 0.78;
+}
+
+.skill-list li + li {
+  margin-top: 0.25rem;
+}
+
+.skill-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--carrier);
+  opacity: 0.55;
+}
+
+body.dark .about__content,
+body.dark .skill-card,
+body.dark .project-card,
+body.dark .contact__item {
+  background: var(--surface-dark);
+  border-color: var(--surface-border-dark);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.36);
+}
+
+.about__content {
+  padding: 2rem 2.2rem;
+  line-height: 1.8;
+  max-width: 720px;
+  margin: 0 auto;
+  font-size: 0.96rem;
+}
+
+.traits {
+  list-style: none;
+  padding: 0;
+  margin: 1.2rem 0 0;
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.traits li {
+  border-radius: 999px;
+  border: 1px solid var(--surface-border-light);
+  padding: 0.42rem 0.82rem;
+  font-family: "Chakra Petch", "Segoe UI", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.traits li:hover {
+  border-color: var(--carrier);
+  color: var(--carrier);
+}
+
+body.dark .traits li {
+  border-color: var(--surface-border-dark);
+}
+
+body.dark .traits li:hover {
+  border-color: var(--carrier);
+}
+
+.skills__grid,
+.projects__grid,
+.contact__grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.skills__grid {
+  counter-reset: skill-counter;
+}
+
+.skill-card {
+  counter-increment: skill-counter;
+}
+
+.skill-card h3::before {
+  content: counter(skill-counter, decimal-leading-zero) ". ";
+  font-family: "Share Tech Mono", "Courier New", monospace;
+  font-size: 0.78rem;
+  color: var(--carrier);
+  opacity: 0.5;
+  margin-right: 0.2rem;
+}
+
+.skill-card,
+.project-card,
+.contact__item {
+  padding: 1.5rem 1.6rem;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.skill-card:hover,
+.project-card:hover,
+.contact__item:hover {
+  box-shadow: 0 16px 40px rgba(26, 36, 56, 0.12);
+  border-color: color-mix(in srgb, var(--carrier) 45%, var(--surface-border-light));
+}
+
+body.dark .skill-card:hover,
+body.dark .project-card:hover,
+body.dark .contact__item:hover {
+  box-shadow: 0 24px 46px rgba(0, 0, 0, 0.48);
+  border-color: color-mix(in srgb, var(--carrier) 48%, var(--surface-border-dark));
+}
+
+.signal-reactive.signal-hit {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--carrier) 60%, transparent), 0 0 26px var(--glow-carrier);
+}
+
+.animate-on-signal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.animate-on-signal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.node-section.signal-arrived::after {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--carrier), transparent);
+  opacity: 0.45;
+}
+
+/* ── Signal Dividers (Tx/Rx) ── */
+.signal-divider {
+  height: 120px;
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.divider-canvas {
+  flex: 1;
+  height: 100%;
+  display: block;
+}
+
+.divider-label {
+  font-family: "Share Tech Mono", "Courier New", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: var(--muted-light);
+  text-transform: uppercase;
+  flex-shrink: 0;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+  user-select: none;
+}
+
+body.dark .divider-label {
+  color: var(--muted-dark);
+}
+
+.divider-tx {
+  opacity: 0.6;
+}
+
+.divider-rx {
+  opacity: 0.6;
+}
+
+/* ── FFT Skills Visualization ── */
+.fft-wrap {
+  margin-bottom: 1.5rem;
+}
+
+.fft-heading {
+  margin: 0 0 2rem;
+  text-align: center;
+  font-family: "Share Tech Mono", "Courier New", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--carrier);
+  opacity: 0.55;
+}
+
+
+.fft-axis-tick {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: "Share Tech Mono", "Courier New", monospace;
+  font-size: 0.72rem;
+  color: var(--carrier);
+  opacity: 0.55;
+  pointer-events: none;
+  white-space: nowrap;
+  transform: translate(-100%, -50%);
+  padding-right: 4px;
+}
+
+.fft-axis-xlabel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: "Share Tech Mono", "Courier New", monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.10em;
+  color: var(--carrier);
+  opacity: 0.50;
+  pointer-events: none;
+  white-space: nowrap;
+  transform: translate(-50%, 6px);
+}
+
+.fft-hint {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-family: "Share Tech Mono", "Courier New", monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: var(--carrier);
+  opacity: 0.35;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 0.4s ease;
+}
+
+.fft-hint.hidden {
+  opacity: 0;
+}
+
+.skills__subtitle {
+  margin: 0 0 1rem;
+  text-align: center;
+  font-family: "Chakra Petch", "Segoe UI", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.4;
+}
+
+.fft-container {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  border-radius: 18px;
+  overflow: visible;
+}
+
+#fftCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.fft-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.fft-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.4rem 0.7rem;
+  background: var(--surface-light);
+  border: 1px solid var(--surface-border-light);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+  opacity: 0;
+  transition: opacity 0.3s ease, box-shadow 0.3s ease;
+  white-space: nowrap;
+}
+
+body.dark .fft-label {
+  background: var(--surface-dark);
+  border-color: var(--surface-border-dark);
+}
+
+.fft-label__name {
+  font-family: "Chakra Petch", "Segoe UI", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.fft-label__detail {
+  font-size: 0.68rem;
+  opacity: 0.6;
+  letter-spacing: 0.02em;
+}
+
+.fft-label__pct {
+  font-family: "Share Tech Mono", "Courier New", monospace;
+  font-size: 0.66rem;
+  color: var(--carrier);
+  opacity: 0.7;
+}
+
+
+/* ── Card Tilt ── */
+.signal-reactive {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.contact__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.contact__label {
+  font-family: "Share Tech Mono", "Courier New", monospace;
+  font-size: 0.72rem;
+  color: var(--carrier);
+  opacity: 0.5;
+  letter-spacing: 0.1em;
+}
+
+.contact__icon {
+  width: 28px;
+  height: 28px;
+  color: var(--carrier);
+  opacity: 0.45;
+  transition: opacity 0.25s ease;
+}
+
+.contact__item:hover .contact__icon {
+  opacity: 0.8;
+}
+
+.contact__item h3 {
+  margin-bottom: 0.15rem;
+}
+
+.contact__item p {
+  opacity: 0.6;
+  margin-bottom: 0.3rem;
+}
+
+.contact__item .btn {
+  margin-top: auto;
+}
+
+.arch-hl {
+  color: var(--carrier);
+  text-shadow: 0 0 8px var(--glow-carrier);
+}
+
+.footer {
+  position: relative;
+  z-index: 12;
+  padding: 2.5rem 1rem;
+  text-align: center;
+}
+
+.footer__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 0.82rem;
+  opacity: 0.55;
+}
+
+.footer__brand {
+  font-family: "Chakra Petch", "Segoe UI", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.footer__sep {
+  width: 1px;
+  height: 14px;
+  background: currentColor;
+  opacity: 0.3;
+}
+
+.footer__note {
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+/* ── Signal Acquisition Loader ── */
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0a0e1a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s ease;
+}
+
+.loader-overlay canvas {
+  width: 90%;
+  max-width: 800px;
+  height: 45%;
+  max-height: 360px;
+}
+
+.loader-hud {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+}
+
+.loader-status {
+  font-family: "Share Tech Mono", "Courier New", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  color: rgba(180, 210, 255, 0.7);
+  transition: color 0.4s ease;
+}
+
+.loader-meter {
+  display: flex;
+  gap: 3px;
+}
+
+.loader-meter span {
+  display: block;
+  width: 5px;
+  height: 16px;
+  background: rgba(180, 210, 255, 0.1);
+  border-radius: 1px;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.loader-meter span.active {
+  background: #3a86ff;
+  box-shadow: 0 0 8px rgba(58, 134, 255, 0.5);
+}
+
+.fm-dial {
+  position: relative;
+  width: 90%;
+  max-width: 800px;
+  height: 48px;
+  margin-top: 1.2rem;
+  overflow: hidden;
+  border-top: 1px solid rgba(58, 134, 255, 0.15);
+  border-bottom: 1px solid rgba(58, 134, 255, 0.15);
+}
+
+.fm-dial__needle {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #3a86ff;
+  box-shadow: 0 0 10px rgba(58, 134, 255, 0.6);
+  z-index: 2;
+  transform: translateX(-50%);
+}
+
+.fm-dial__strip {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  transition: none;
+}
+
+.fm-dial__strip .fm-tick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.fm-tick__line {
+  width: 1px;
+  height: 12px;
+  background: rgba(180, 210, 255, 0.25);
+}
+
+.fm-tick__line--major {
+  height: 20px;
+  background: rgba(180, 210, 255, 0.4);
+}
+
+.fm-tick__label {
+  font-family: "Share Tech Mono", "Courier New", monospace;
+  font-size: 0.58rem;
+  color: rgba(180, 210, 255, 0.35);
+  margin-top: 2px;
+  letter-spacing: 0.05em;
+}
+
+.fm-dial.locked .fm-tick__label {
+  color: rgba(180, 210, 255, 0.15);
+}
+
+.fm-dial.locked .fm-tick.target .fm-tick__label {
+  color: #3a86ff;
+}
+
+.fm-dial.locked .fm-tick.target .fm-tick__line {
+  background: #3a86ff;
+  box-shadow: 0 0 6px rgba(58, 134, 255, 0.5);
+}
+
+.loader-skip {
+  position: absolute;
+  bottom: 2rem;
+  font-family: "Share Tech Mono", "Courier New", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  color: rgba(180, 210, 255, 0.25);
+  z-index: 20;
+}
+
+/* Gate portfolio content during loading */
+body.signal-loading main,
+body.signal-loading .nav-shell,
+body.signal-loading .footer,
+body.signal-loading #signalCanvas,
+body.signal-loading .progress-wrap {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.signal-loaded main,
+body.signal-loaded .nav-shell,
+body.signal-loaded .footer,
+body.signal-loaded #signalCanvas,
+body.signal-loaded .progress-wrap {
+  opacity: 1;
+  transition: opacity 0.8s ease;
+}
+
+/* Defer rise-in animations until loaded */
+body.signal-loading .hero__intro,
+body.signal-loading .hero__tagline {
+  animation: none;
+  opacity: 0;
+}
+
+@media (max-width: 980px) {
+  .nav {
+    border-radius: 22px;
+    justify-content: center;
+  }
+
+  .nav__links {
+    justify-content: center;
+  }
+
+  .nav__actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 760px) {
+  .hero {
+    min-height: 86vh;
+    padding-top: 3.7rem;
+  }
+
+  .hero__cta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .signal-divider {
+    height: 90px;
+  }
+
+  .fft-container {
+    height: 280px;
+  }
+
+}

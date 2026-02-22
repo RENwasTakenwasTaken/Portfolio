@@ -1,0 +1,695 @@
+/* ============================================
+   ArCh Boot — Embedded Systems Hero Page
+   ============================================ */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0a0a0a;
+  --bg-chip: #111;
+  --bg-chip-body: #1a1a1a;
+  --trace: #2ecc71;
+  --trace-dim: #1a5c34;
+  --trace-glow: rgba(46, 204, 113, 0.35);
+  --amber: #d4a017;
+  --amber-dim: #6b5010;
+  --amber-glow: rgba(212, 160, 23, 0.3);
+  --text: #c8c8c8;
+  --text-dim: #555;
+  --text-bright: #e8e8e8;
+  --boot-green: #33ff66;
+  --boot-green-dim: #0a3318;
+  --pin: #888;
+  --pin-bright: #bbb;
+  --peripheral-bg: rgba(20, 20, 20, 0.85);
+  --peripheral-border: #2a2a2a;
+  --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+  --font-heading: 'Chakra Petch', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+/* ========================
+   Boot Screen
+   ======================== */
+
+.boot-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 32px 40px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+/* Subtle vignette around edges */
+.boot-screen::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 60%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.boot-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.boot-terminal {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 1.1vw, 13px);
+  line-height: 1.65;
+  color: var(--boot-green);
+  text-shadow: 0 0 6px rgba(51, 255, 102, 0.25);
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+.boot-terminal pre {
+  white-space: pre;
+  overflow-x: hidden;
+  margin: 0;
+}
+
+.boot-cursor {
+  display: inline-block;
+  animation: blink-cursor 0.6s step-end infinite;
+  text-shadow: 0 0 8px rgba(51, 255, 102, 0.5);
+}
+
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ========================
+   Main Content
+   ======================== */
+
+.main-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 1s ease 0.2s;
+  overflow: hidden;
+}
+
+.main-content.visible {
+  opacity: 1;
+}
+
+/* Subtle grid background */
+.main-content::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(46, 204, 113, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46, 204, 113, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* ========================
+   SVG Traces
+   ======================== */
+
+.trace-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.trace-line {
+  stroke: var(--trace-dim);
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: url(#trace-glow);
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  transition: stroke 0.6s ease;
+}
+
+.trace-line.powered {
+  stroke: var(--trace);
+  stroke-dashoffset: 0;
+}
+
+/* ========================
+   MCU Chip
+   ======================== */
+
+.mcu-container {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.mcu-chip {
+  position: relative;
+  width: clamp(180px, 22vw, 260px);
+  height: clamp(180px, 22vw, 260px);
+  filter: grayscale(1) brightness(0.5);
+  transition: filter 1.2s ease, transform 0.3s ease;
+}
+
+.mcu-chip.powered {
+  filter: grayscale(0) brightness(1);
+}
+
+.mcu-chip:hover {
+  transform: scale(1.02);
+}
+
+.mcu-body {
+  position: absolute;
+  inset: 18px;
+  background: var(--bg-chip-body);
+  border: 1px solid #333;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.5),
+    0 0 30px rgba(46, 204, 113, 0);
+  transition: box-shadow 1.2s ease;
+}
+
+.mcu-chip.powered .mcu-body {
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.5),
+    0 0 40px var(--trace-glow);
+}
+
+.mcu-dot {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #333;
+  border: 1px solid #444;
+}
+
+.mcu-chip.powered .mcu-dot {
+  background: var(--trace);
+  box-shadow: 0 0 8px var(--trace-glow);
+}
+
+.mcu-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.mcu-brand {
+  font-family: var(--font-heading);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 4px;
+  transition: color 1.2s ease;
+}
+
+.mcu-chip.powered .mcu-brand {
+  color: var(--text-bright);
+}
+
+.mcu-part {
+  font-family: var(--font-mono);
+  font-size: clamp(9px, 1vw, 12px);
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  transition: color 1.2s ease;
+}
+
+.mcu-chip.powered .mcu-part {
+  color: #888;
+}
+
+.mcu-desc {
+  font-family: var(--font-mono);
+  font-size: clamp(7px, 0.8vw, 10px);
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  margin-top: 4px;
+  transition: color 1.2s ease;
+}
+
+.mcu-chip.powered .mcu-desc {
+  color: #666;
+}
+
+/* MCU Pins */
+.mcu-pins {
+  position: absolute;
+  display: flex;
+  gap: 6px;
+}
+
+.mcu-pins-top,
+.mcu-pins-bottom {
+  left: 28px;
+  right: 28px;
+  height: 14px;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.mcu-pins-top { top: 4px; }
+.mcu-pins-bottom { bottom: 4px; }
+
+.mcu-pins-left,
+.mcu-pins-right {
+  top: 28px;
+  bottom: 28px;
+  width: 14px;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mcu-pins-left { left: 4px; }
+.mcu-pins-right { right: 4px; }
+
+.mcu-pins::before,
+.mcu-pins::after {
+  content: '';
+}
+
+/* Generate pins with repeating gradient trick */
+.mcu-pins-top,
+.mcu-pins-bottom {
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 4px,
+    var(--pin) 4px,
+    var(--pin) 10px,
+    transparent 10px,
+    transparent 16px
+  );
+}
+
+.mcu-pins-left,
+.mcu-pins-right {
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0px,
+    transparent 4px,
+    var(--pin) 4px,
+    var(--pin) 10px,
+    transparent 10px,
+    transparent 16px
+  );
+}
+
+.mcu-chip.powered .mcu-pins-top,
+.mcu-chip.powered .mcu-pins-bottom {
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 4px,
+    var(--pin-bright) 4px,
+    var(--pin-bright) 10px,
+    transparent 10px,
+    transparent 16px
+  );
+}
+
+.mcu-chip.powered .mcu-pins-left,
+.mcu-chip.powered .mcu-pins-right {
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0px,
+    transparent 4px,
+    var(--pin-bright) 4px,
+    var(--pin-bright) 10px,
+    transparent 10px,
+    transparent 16px
+  );
+}
+
+/* ========================
+   Peripheral Blocks
+   ======================== */
+
+.peripherals {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.peripheral {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 20px;
+  background: var(--peripheral-bg);
+  border: 1px solid var(--peripheral-border);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--text);
+  pointer-events: auto;
+  cursor: pointer;
+  filter: grayscale(1) brightness(0.4);
+  opacity: 0;
+  transform: scale(0.5);
+  transition:
+    filter 0.8s ease,
+    opacity 0.5s ease,
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.peripheral.powered {
+  filter: grayscale(0) brightness(1);
+  opacity: 1;
+  transform: scale(1);
+}
+
+.peripheral:hover {
+  transform: scale(1.05);
+  border-color: var(--trace);
+  box-shadow: 0 0 20px var(--trace-glow);
+}
+
+.peripheral-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--trace);
+}
+
+.peripheral-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.peripheral-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--text-bright);
+}
+
+.peripheral-sub {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+/* Peripheral positions — use translate to center them at their anchor point,
+   combined with scale for the power-on animation */
+.peripheral-portfolio {
+  top: 14%;
+  left: 50%;
+  translate: -50% 0;
+}
+
+.peripheral-github {
+  top: 50%;
+  right: 8%;
+  translate: 0 -50%;
+}
+
+.peripheral-linkedin {
+  bottom: 14%;
+  left: 50%;
+  translate: -50% 0;
+}
+
+.peripheral-email {
+  top: 50%;
+  left: 8%;
+  translate: 0 -50%;
+}
+
+/* ========================
+   Tagline
+   ======================== */
+
+.tagline {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 1s ease;
+  text-align: center;
+}
+
+.tagline.visible {
+  opacity: 1;
+}
+
+.tagline-text {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 1.2vw, 14px);
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+/* ========================
+   Status Register (glass panel under MCU)
+   ======================== */
+
+.status-register {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 7px 16px;
+  /* Dark LCD panel base */
+  background:
+    linear-gradient(
+      180deg,
+      rgba(10, 18, 12, 0.85) 0%,
+      rgba(8, 14, 10, 0.95) 100%
+    );
+  /* Glass reflection overlay */
+  border: 1px solid rgba(46, 204, 113, 0.1);
+  border-top-color: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.8s ease, transform 0.6s ease;
+}
+
+/* Glass glare streak */
+.status-register::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.03) 38%,
+    rgba(255, 255, 255, 0.06) 42%,
+    rgba(255, 255, 255, 0.03) 46%,
+    transparent 49%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Subtle scanline texture */
+.status-register::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 1px,
+    rgba(0, 0, 0, 0.12) 1px,
+    rgba(0, 0, 0, 0.12) 2px
+  );
+  pointer-events: none;
+}
+
+.status-register.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.sr-item {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: rgba(46, 204, 113, 0.55);
+  letter-spacing: 1.5px;
+  padding: 0 8px;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 0 4px rgba(46, 204, 113, 0.15);
+}
+
+.sr-divider {
+  width: 1px;
+  height: 10px;
+  background: rgba(46, 204, 113, 0.1);
+  position: relative;
+  z-index: 1;
+}
+
+.sr-blink {
+  color: var(--trace);
+  text-shadow: 0 0 6px rgba(46, 204, 113, 0.3);
+  animation: sr-pulse 2s ease-in-out infinite;
+}
+
+@keyframes sr-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ========================
+   Skip Hint
+   ======================== */
+
+.skip-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  translate: -50% 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+/* ========================
+   Responsive
+   ======================== */
+
+@media (max-width: 768px) {
+  .boot-screen {
+    padding: 20px 16px;
+  }
+
+  .boot-terminal {
+    font-size: 8px;
+    line-height: 1.5;
+  }
+
+  .peripheral {
+    padding: 10px 12px;
+  }
+
+  .peripheral-label {
+    font-size: 9px;
+  }
+
+  .peripheral-sub {
+    font-size: 7px;
+  }
+
+  .peripheral-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .peripheral-portfolio {
+    top: 8%;
+  }
+
+  .peripheral-linkedin {
+    bottom: 8%;
+  }
+
+  .peripheral-github {
+    right: 3%;
+  }
+
+  .peripheral-email {
+    left: 3%;
+  }
+
+  .sr-item {
+    font-size: 7px;
+    padding: 0 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .peripheral-portfolio {
+    top: 6%;
+  }
+
+  .peripheral-linkedin {
+    bottom: 6%;
+  }
+
+  .peripheral-github {
+    right: 1%;
+  }
+
+  .peripheral-email {
+    left: 1%;
+  }
+
+  .status-register {
+    padding: 4px 8px;
+  }
+}
