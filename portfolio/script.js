@@ -160,6 +160,21 @@ navLinks.forEach((link) => {
   });
 });
 
+// ── Mobile nav toggle ──
+const navToggle = document.getElementById("navToggle");
+if (navToggle) {
+  navToggle.addEventListener("click", () => {
+    const open = nav.classList.toggle("nav--open");
+    navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  navLinks.forEach((link) => {
+    link.addEventListener("click", () => {
+      nav.classList.remove("nav--open");
+      navToggle.setAttribute("aria-expanded", "false");
+    });
+  });
+}
+
 function updateNavWaves(time) {
   const t = time * 0.001;
   navLinks.forEach((link) => {
@@ -570,6 +585,17 @@ window.addEventListener("mousemove", (event) => {
   pointer.lastY = event.clientY;
   pointer.lastT = now;
 });
+
+window.addEventListener("touchmove", (event) => {
+  const touch = event.touches[0];
+  if (!touch) return;
+  if (window.HeroThree) {
+    window.HeroThree.updatePointer(
+      touch.clientX / state.width,
+      touch.clientY / state.height
+    );
+  }
+}, { passive: true });
 
 window.addEventListener("scroll", () => {
   updateScrollState();

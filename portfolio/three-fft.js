@@ -295,6 +295,19 @@
     var rect = containerEl.getBoundingClientRect();
     renderer.setSize(rect.width, rect.height);
     camera.aspect = rect.width / rect.height;
+
+    if (rect.width < 480) {
+      camera.position.set(0, 8, 18);
+      camera.fov = 38;
+    } else if (rect.width < 768) {
+      camera.position.set(0, 7, 16);
+      camera.fov = 36;
+    } else {
+      camera.position.set(0, 6, 14);
+      camera.fov = 35;
+    }
+    camera.lookAt(0, 1.5, 0);
+
     camera.updateProjectionMatrix();
   }
 
